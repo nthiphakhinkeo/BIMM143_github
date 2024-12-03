@@ -1,0 +1,1 @@
+ssh -i "~/Desktop/Class16/Bioinf_Nic2.pem" ubuntu@ec2-54-190-193-65.us-west-2.compute.amazonaws.com

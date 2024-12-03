@@ -1,0 +1,1 @@
+scp -r -i "~/Downloads/Bioinf_Nic2.pem" ubuntu@ec2-35-164-169-68.us-west-2.compute.amazonaws.com:~/*_quant .

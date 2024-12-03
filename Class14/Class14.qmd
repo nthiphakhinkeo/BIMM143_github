@@ -1,0 +1,224 @@
+---
+title: "Class14"
+author: Nicholas Thiphakhinkeo A17686679
+date: 11/14/2024
+format: pdf
+---
+# Section 1. Differential Expression Analysis
+```{r}
+suppressPackageStartupMessages(library(DESeq2))
+library(DESeq2)
+metaFile <- "GSE37704_metadata.csv"
+countFile <- "GSE37704_featurecounts.csv"
+# Import metadata and take a peak
+colData = read.csv(metaFile, row.names=1)
+head(colData)
+# Import countdata
+countData = read.csv(countFile, row.names=1)
+head(countData)
+```
+> Q1. Removing $Length Col
+
+```{r}
+countData <- as.matrix(countData[,-1])
+head(countData)
+```
+> Q2. Removing Zero Entries 
+
+```{r}
+countData = countData[rowSums(countData) > 0, ]
+head(countData)
+```
+# Running DESeq2
+```{r}
+dds = DESeqDataSetFromMatrix(countData=countData,
+                             colData=colData,
+                             design=~condition)
+dds = DESeq(dds)
+```
+
+```{r}
+dds
+```
+# Results for HoxA1 knockdown vs control siRNA
+> Q3. Summary() Function
+
+```{r}
+res = results(dds, contrast=c("condition", "hoxa1_kd", "control_sirna"))
+summary(res)
+```
+# Volcano Plot
+```{r}
+plot( res$log2FoldChange, -log(res$padj) )
+```
+# Color Vector for all genes
+```{r}
+mycols <- rep("gray", nrow(res))
+```
+# Color red the genes with absolute fold change above 2
+> Q4. Adding Color and axis labels
+
+```{r}
+mycols[abs(res$log2FoldChange) > 2] <- "red"
+```
+# Color blue those with adjusted p-value less than 0.01 and absolute fold change more than 2
+```{r}
+inds <- (res$padj) & (abs(res$log2FoldChange) > 2 )
+mycols[inds] <- "blue"
+```
+
+```{r}
+plot( res$log2FoldChange, -log(res$padj), col=mycols, xlab="Log2(FoldChange)", ylab="-Log(P-value)" )
+```
+# Adding Gene Annotation
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+
+columns(org.Hs.eg.db)
+```
+> Q5. using mapIDs() to annotate
+
+# Adding SYMBOL Annotation
+```{r}
+res$symbol = mapIds(org.Hs.eg.db,
+                    keys=row.names(res), 
+                    keytype="ENSEMBL",
+                    column="SYMBOL",
+                    multiVals="first")
+```
+# Adding "ENTREZID"
+```{r}
+res$entrez = mapIds(org.Hs.eg.db,
+                    keys=row.names(res), 
+                    keytype="ENSEMBL",
+                    column="ENTREZID",
+                    multiVals="first")
+```
+# Adding "GENENAME"
+```{r}
+res$name = mapIds(org.Hs.eg.db,
+                    keys=row.names(res), 
+                    keytype="ENSEMBL",
+                    column="GENENAME",
+                    multiVals="first")
+```
+> Q6. Reordering by pvalue and saving results
+ 
+```{r}
+res = res[order(res$pvalue),]
+write.csv(res, file="deseq_results.csv")
+```
+
+# Section 2. Pathway Analysis
+```{r}
+suppressPackageStartupMessages(library(pathview))
+library(pathview)
+library(gage)
+library(gageData)
+data(kegg.sets.hs)
+data(sigmet.idx.hs)
+# Focus on signaling and metabolic pathways only
+kegg.sets.hs = kegg.sets.hs[sigmet.idx.hs]
+# Examine the first 3 pathways
+head(kegg.sets.hs, 3)
+```
+# using gage
+```{r}
+foldchanges = res$log2FoldChange
+names(foldchanges) = res$entrez
+head(foldchanges)
+```
+# gage pathway analysis
+```{r}
+keggres = gage(foldchanges, gsets=kegg.sets.hs)
+attributes(keggres)
+```
+# Previewing down pathways
+```{r}
+head(keggres$less)
+```
+# Pathview Analysis
+```{r}
+pathview(gene.data=foldchanges, pathway.id="hsa04110")
+```
+```{r}
+pathview(gene.data=foldchanges, pathway.id="hsa04110", kegg.native=FALSE)
+```
+## Focus on top 5 upregulated pathways here for demo purposes only
+```{r}
+keggrespathways <- rownames(keggres$greater)[1:5]
+```
+# Extract the 8 character long IDs part of each string
+```{r}
+keggresids = substr(keggrespathways, start=1, stop=8)
+keggresids
+```
+# pass these IDs in keggresids to the pathview() function to draw plots for all the top 5 pathways.
+```{r}
+pathview(gene.data=foldchanges, pathway.id=keggresids, species="hsa")
+```
+![](hsa04640.pathview.png)
+
+![](hsa04630.pathview.png)
+
+![](hsa00140.pathview.png)
+
+![](hsa04142.pathview.png)
+
+![](hsa04330.pathview.png)
+
+> Q7. Top 5 Downregulated Pathways
+
+```{r}
+keggrespathways2 <- rownames(keggres$less)[1:5]
+```
+
+```{r}
+keggresids2 = substr(keggrespathways2, start=1, stop=8)
+keggresids2
+```
+# Pathway Analysis for DownReg Pathways
+```{r}
+pathview(gene.data=foldchanges, pathway.id=keggresids2, species="hsa")
+```
+
+![](hsa04110.pathview.png)
+
+![](hsa03030.pathview.png)
+
+![](hsa03013.pathview.png)
+
+![](hsa03440.pathview.png)
+
+![](hsa04114.pathview.png)
+
+
+# Section 3. Gene Ontology
+```{r}
+data(go.sets.hs)
+data(go.subs.hs)
+
+# Focus on Biological Process subset of GO
+gobpsets = go.sets.hs[go.subs.hs$BP]
+
+gobpres = gage(foldchanges, gsets=gobpsets, same.dir=TRUE)
+
+lapply(gobpres, head)
+```
+
+# Section 4. Reactome Analysis
+```{r}
+sig_genes <- res[res$padj <= 0.05 & !is.na(res$padj), "symbol"]
+print(paste("Total number of significant genes:", length(sig_genes)))
+```
+
+```{r}
+write.table(sig_genes, file="significant_genes.txt", row.names=FALSE, col.names=FALSE, quote=FALSE)
+```
+
+![](Homo sapiens.png)
+
+> Q8. What pathway has the most significant “Entities p-value”? Do the most significant pathways listed match your previous KEGG results? What factors could cause differences between the two methods?
+
+Mitotic Cell Cycle has the most significant p-value in Reactome but it doesn't match the p-value of the pathway analysis from gage. This could be due to the way the databases define the pathways and genes included. KEGG and Reactome employ similar GSEA methods and the gene mapping and annotations inputted into each were the same so it is unlikely due to either of those reasons. 
