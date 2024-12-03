@@ -1,0 +1,132 @@
+---
+title: "Class07"
+author: Nicholas Thiphakhinkeo
+format: pdf
+---
+# rnorm
+```{r}
+rnorm(10)
+```
+```{r}
+hist(rnorm(1000, mean=3))
+```
+
+```{r}
+n <- 1000
+x <- c(rnorm(n,-3),rnorm(n,+3))
+hist(x)
+```
+
+
+```{r}
+n<-30
+x<-c(rnorm(n,-3), rnorm(n,+3))
+y <- rev(x)
+z <- cbind(x,y)
+head(z)
+```
+
+```{r}
+plot(z)
+```
+
+```{r}
+km <- kmeans(z,centers=2)
+km
+```
+
+```{r}
+km$size
+```
+Cluster Assignment
+```{r}
+km$cluster
+```
+Cluster Center
+```{r}
+km$centers
+```
+# Plot z color colored by kmeans cluster assignment and add cluster centers as blue points
+```{r}
+
+```
+R recycles shorter color vector to be the same length as the longer (number of data points) in z
+```{r}
+plot(z, col=c("purple","green"))
+```
+
+```{r}
+plot(z, col=km$cluster)
+```
+# use points() function to add new points to an existing plot... like a cluster plot
+```{r}
+plot(z, col=km$cluster)
+points(km$centers, col="purple", pch=15, cex=2)
+```
+# Q. Run kmeans and ask for 4 clusters and plot results
+```{r}
+km2 <- kmeans(z, centers=4)
+km2
+```
+
+```{r}
+plot(z, col=km2$cluster)
+points(km2$centers, col="purple", pch=15, cex=1.5)
+```
+# Hierarchical Clustering 
+#need distance matrix of data to be clustered
+```{r}
+d <- dist(z)
+hc<- hclust(d)
+hc
+```
+
+```{r}
+plot(hc)
+```
+#Cluster Membership by cutting tree with cutree()
+```{r}
+grps <- cutree(hc,h=8)
+grps
+```
+# Plot "z" colored by hclust 
+```{r}
+plot(z, col=grps)
+```
+# PCA Uk Foods Data
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url, row.names=1)
+head(x)
+```
+
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+```
+
+```{r}
+pairs(x, col=rainbow(10), pch=16)
+```
+# Using PCA for Larger Data Sets
+```{r}
+pca <- prcomp(t(x))
+summary(pca)
+```
+
+```{r}
+attributes(pca)
+```
+
+```{r}
+pca$x
+```
+
+```{r}
+plot(pca$x[,1],pca$x[,2], col=c("black","red","blue","darkgreen"), pch=15, xlab="PC1 (67.4%)", ylab="PC2(29.05%)")
+```
+# Colored Country Plot
+```{r}
+plot(pca$x[,1], pca$x[,2], xlab="PC1(67.4%)", ylab="PC2(29.05%)", xlim=c(-270,500))
+text(pca$x[,1], pca$x[,2], colnames(x),col=c("yellow","red","blue","darkgreen"),pch=0, cex=1)
+```
+
