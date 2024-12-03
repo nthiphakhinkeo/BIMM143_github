@@ -1,2 +1,2 @@
 # BIMM143_github
-Classwork
+Classwork for BIMM143 UCSD
