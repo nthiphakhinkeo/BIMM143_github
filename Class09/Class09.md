@@ -459,7 +459,7 @@ anno
     6HAM_A              AP5
     4K46_A      ADP,AMP,PO4
     3GMT_A          SO4 (2)
-    4PZL_A       CA,GOL,FMT
+    4PZL_A       CA,FMT,GOL
                                                                                  ligandName
     1AKE_A                                                 BIS(ADENOSINE)-5'-PENTAPHOSPHATE
     6S36_A                                    CHLORIDE ION (3),SODIUM ION,MAGNESIUM ION (2)
@@ -473,7 +473,7 @@ anno
     6HAM_A                                                 BIS(ADENOSINE)-5'-PENTAPHOSPHATE
     4K46_A                   ADENOSINE-5'-DIPHOSPHATE,ADENOSINE MONOPHOSPHATE,PHOSPHATE ION
     3GMT_A                                                                  SULFATE ION (2)
-    4PZL_A                                                 CALCIUM ION,GLYCEROL,FORMIC ACID
+    4PZL_A                                                 CALCIUM ION,FORMIC ACID,GLYCEROL
                                                      source
     1AKE_A                                 Escherichia coli
     6S36_A                                 Escherichia coli
